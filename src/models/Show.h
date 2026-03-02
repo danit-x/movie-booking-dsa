@@ -15,7 +15,7 @@ struct Show
     unsigned char seats[ROWS][COLS];
     int availableCount;
 
-    void *bookingIdlistHead;
+    void *bookingIdListHead;
     void *waitFront;
     void *waitRear;
     int waitCount;
