@@ -13,7 +13,7 @@ struct Booking
 {
     int id;
     int showId;
-    char customerNmae[MAX_NAME];
+    char customerName[MAX_NAME];
 
     int seatCount;
     unsigned char seatR[MAX_SEATS_IN_BOOKING];
