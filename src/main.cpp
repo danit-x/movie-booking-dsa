@@ -1,13 +1,8 @@
-#include "data/Store.h"
-#include "data/SampleData.h"
-#include "ui/Menu.h"
+#include <iostream>
+using namespace std;
 
 int main()
 {
-    Store store;
-    StoreOps::init(store);
-    SampleData::load(store);
-
-    Menu::run(store);
+    cout << "start" << endl;
     return 0;
 }
