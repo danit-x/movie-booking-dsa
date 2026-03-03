@@ -1,12 +1,13 @@
 #ifndef WAITREQUEST_H
 #define WAITREQUEST_H
 
+#include <string>
 #include "Constants.h"
 
 struct WaitRequest
 {
-    char name[MAX_NAME];
-    int seatRequested;
+    std::string name;
+    int seatsRequested;
 };
 
 #endif

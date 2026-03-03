@@ -1,12 +1,12 @@
 #include <iostream>
 using namespace std;
 
-#include "models/Movie.h"
+#include "app/BookingSystem.h"
+#include "ui/Menu.h"
 
 int main()
 {
-    Movie m;
-    m.id = 1;
-    cout << "Movie ID: " << m.id << endl;
+    BookingSystem system;
+    Menu::run(system);
     return 0;
 }
