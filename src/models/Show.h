@@ -12,9 +12,6 @@ struct Show
     int price;
     unsigned char seats[ROWS][COLS];
     int availableCount;
-    void *bookingIdListHead;
-    void *waitFront;
-    void *waitRear;
     int waitCount;
 };
 
