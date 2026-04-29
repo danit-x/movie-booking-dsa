@@ -1,10 +1,7 @@
 #ifndef BSTMOVIETITLE_H
 #define BSTMOVIETITLE_H
 
-#include <cstring>
 #include <string>
-
-#include "../models/Constants.h"
 
 class BSTMovieTitle
 {
