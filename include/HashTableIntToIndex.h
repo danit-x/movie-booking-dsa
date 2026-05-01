@@ -21,13 +21,19 @@ public:
     HashTableIntToIndex();
     ~HashTableIntToIndex();
 
+    // Object is unusable until init() is called.
     void init(int bucketCountValue);
+
     void put(int key, int index);
-    int get(int key, int &outIndex) const;
-    int remove(int key);
+    bool get(int key, int &outIndex) const;
+    bool remove(int key);
     void clear();
 
     int getSize() const;
+    bool isEmpty() const;
+
+    HashTableIntToIndex(const HashTableIntToIndex &) = delete;
+    HashTableIntToIndex &operator=(const HashTableIntToIndex &) = delete;
 };
 
 #endif
