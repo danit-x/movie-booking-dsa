@@ -2,6 +2,7 @@
 #define SINGLYLINKEDLISTINT_H
 
 #include <iostream>
+using namespace std;
 
 class SinglyLinkedListInt
 {
@@ -16,25 +17,19 @@ private:
     Node *head;
     Node *tail;
     int size;
-    // No need for a separate tail pointer if we only insert at the end, but it can make insertions more efficient.
-    // We will maintain the tail pointer to allow O(1) insertions at the end of the list.
 
 public:
     SinglyLinkedListInt();
     ~SinglyLinkedListInt();
 
     void insertLast(int value);
-    bool removeValue(int value);
-    bool contains(int value) const;
+    int removeValue(int value);
+    int contains(int value) const;
     void print() const;
     void clear();
 
     Node *getHead() const;
     int getSize() const;
-    bool isEmpty() const;
-
-    SinglyLinkedListInt(const SinglyLinkedListInt &) = delete;
-    SinglyLinkedListInt &operator=(const SinglyLinkedListInt &) = delete;
 };
 
 #endif
