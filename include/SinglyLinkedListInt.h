@@ -16,6 +16,7 @@ private:
     Node *head;
     Node *tail;
     int size;
+    // No need for a separate tail pointer if we only insert at the end, but it can make insertions more efficient.
 
 public:
     SinglyLinkedListInt();
