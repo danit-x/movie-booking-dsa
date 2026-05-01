@@ -5,7 +5,7 @@
 using namespace std;
 
 #include "BookingSystem.h"
-#include "../include/SampleData.h"
+#include "SampleData.h"
 
 BookingSystem::BookingSystem()
 {
@@ -432,7 +432,7 @@ void BookingSystem::buildBookingIndex()
 
 void BookingSystem::syncShowPointers(int showIndex)
 {
-    store.shows[showIndex].bookingIdListHead = (void *)showBookingLists[showIndex].getHead();
+    store.shows[showIndex].bookingIdListHead = showBookingLists[showIndex].getHead();
 
     if (showWaitQueues[showIndex].isEmpty())
     {
@@ -441,8 +441,8 @@ void BookingSystem::syncShowPointers(int showIndex)
     }
     else
     {
-        store.shows[showIndex].waitFront = (void *)&showWaitQueues[showIndex];
-        store.shows[showIndex].waitRear = (void *)&showWaitQueues[showIndex];
+        store.shows[showIndex].waitFront = &showWaitQueues[showIndex];
+        store.shows[showIndex].waitRear = &showWaitQueues[showIndex];
     }
 
     store.shows[showIndex].waitCount = showWaitQueues[showIndex].getSize();
