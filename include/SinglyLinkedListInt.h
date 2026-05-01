@@ -2,7 +2,6 @@
 #define SINGLYLINKEDLISTINT_H
 
 #include <iostream>
-using namespace std;
 
 class SinglyLinkedListInt
 {
@@ -23,13 +22,17 @@ public:
     ~SinglyLinkedListInt();
 
     void insertLast(int value);
-    int removeValue(int value);
-    int contains(int value) const;
+    bool removeValue(int value);
+    bool contains(int value) const;
     void print() const;
     void clear();
 
     Node *getHead() const;
     int getSize() const;
+    bool isEmpty() const;
+
+    SinglyLinkedListInt(const SinglyLinkedListInt &) = delete;
+    SinglyLinkedListInt &operator=(const SinglyLinkedListInt &) = delete;
 };
 
 #endif

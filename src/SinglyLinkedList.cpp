@@ -1,10 +1,13 @@
+#include <cstddef>
+#include <iostream>
 #include "../include/SinglyLinkedListInt.h"
 
+using std::cout;
+using std::endl;
+
 SinglyLinkedListInt::SinglyLinkedListInt()
+    : head(NULL), tail(NULL), size(0)
 {
-    head = NULL;
-    tail = NULL;
-    size = 0;
 }
 
 SinglyLinkedListInt::~SinglyLinkedListInt()
@@ -32,7 +35,7 @@ void SinglyLinkedListInt::insertLast(int value)
     size++;
 }
 
-int SinglyLinkedListInt::removeValue(int value)
+bool SinglyLinkedListInt::removeValue(int value)
 {
     Node *current = head;
     Node *previous = NULL;
@@ -57,28 +60,28 @@ int SinglyLinkedListInt::removeValue(int value)
 
             delete current;
             size--;
-            return 1;
+            return true;
         }
 
         previous = current;
         current = current->next;
     }
 
-    return 0;
+    return false;
 }
 
-int SinglyLinkedListInt::contains(int value) const
+bool SinglyLinkedListInt::contains(int value) const
 {
     Node *current = head;
     while (current != NULL)
     {
         if (current->value == value)
         {
-            return 1;
+            return true;
         }
         current = current->next;
     }
-    return 0;
+    return false;
 }
 
 void SinglyLinkedListInt::print() const
@@ -86,7 +89,8 @@ void SinglyLinkedListInt::print() const
     Node *current = head;
     if (current == NULL)
     {
-        cout << "(empty)";
+        cout << "(empty)" << endl;
+        return;
     }
 
     while (current != NULL)
@@ -104,13 +108,11 @@ void SinglyLinkedListInt::print() const
 void SinglyLinkedListInt::clear()
 {
     Node *current = head;
-    Node *nextNode;
-
     while (current != NULL)
     {
-        nextNode = current->next;
+        Node *next = current->next;
         delete current;
-        current = nextNode;
+        current = next;
     }
 
     head = NULL;
@@ -126,4 +128,9 @@ SinglyLinkedListInt::Node *SinglyLinkedListInt::getHead() const
 int SinglyLinkedListInt::getSize() const
 {
     return size;
+}
+
+bool SinglyLinkedListInt::isEmpty() const
+{
+    return size == 0;
 }
