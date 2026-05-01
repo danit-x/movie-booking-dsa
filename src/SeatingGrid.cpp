@@ -1,15 +1,11 @@
-#include <cstddef>
-#include <iostream>
 #include <iomanip>
 #include "../include/SeatingGrid.h"
 
-using std::cout;
-using std::endl;
-using std::setw;
-
 SeatingGrid::SeatingGrid()
-    : grid(NULL), rows(0), cols(0)
 {
+    grid = NULL;
+    rows = 0;
+    cols = 0;
 }
 
 SeatingGrid::~SeatingGrid()
@@ -30,7 +26,7 @@ int SeatingGrid::encodeKey(int row, int col) const
     return row * cols + col;
 }
 
-bool SeatingGrid::isValid(int row, int col) const
+int SeatingGrid::isValid(int row, int col) const
 {
     return row >= 0 && row < rows && col >= 0 && col < cols;
 }
@@ -65,45 +61,45 @@ void SeatingGrid::init(int rowCount, int colCount)
     }
 }
 
-bool SeatingGrid::selectSeat(int row, int col)
+int SeatingGrid::selectSeat(int row, int col)
 {
     if (!isValid(row, col))
     {
-        return false;
+        return 0;
     }
 
     if (grid[row][col] != AVAILABLE)
     {
-        return false;
+        return 0;
     }
 
     grid[row][col] = SELECTED;
     selectedSeats.insertLast(encodeKey(row, col));
-    return true;
+    return 1;
 }
 
-bool SeatingGrid::deselectSeat(int row, int col)
+int SeatingGrid::deselectSeat(int row, int col)
 {
     if (!isValid(row, col))
     {
-        return false;
+        return 0;
     }
 
     if (grid[row][col] != SELECTED)
     {
-        return false;
+        return 0;
     }
 
     grid[row][col] = AVAILABLE;
     selectedSeats.removeValue(encodeKey(row, col));
-    return true;
+    return 1;
 }
 
-bool SeatingGrid::confirmBooking()
+int SeatingGrid::confirmBooking()
 {
-    if (selectedSeats.isEmpty())
+    if (selectedSeats.getSize() == 0)
     {
-        return false;
+        return 0;
     }
 
     SinglyLinkedListInt::Node *current = selectedSeats.getHead();
@@ -117,37 +113,36 @@ bool SeatingGrid::confirmBooking()
     }
 
     selectedSeats.clear();
-    return true;
+    return 1;
 }
 
-bool SeatingGrid::cancelSeat(int row, int col)
+int SeatingGrid::cancelSeat(int row, int col)
 {
     if (!isValid(row, col))
     {
-        return false;
+        return 0;
     }
 
     if (grid[row][col] != BOOKED)
     {
-        return false;
+        return 0;
     }
 
     grid[row][col] = AVAILABLE;
-    return true;
+    return 1;
 }
 
-bool SeatingGrid::isAvailable(int row, int col) const
+int SeatingGrid::isAvailable(int row, int col) const
 {
     if (!isValid(row, col))
     {
-        return false;
+        return 0;
     }
     return grid[row][col] == AVAILABLE;
 }
 
 void SeatingGrid::suggestSeats(int count) const
 {
-    // Graph logic: scan each row for 'count' consecutive available seats
     for (int r = 0; r < rows; r++)
     {
         int consecutive = 0;
@@ -184,8 +179,6 @@ void SeatingGrid::suggestSeats(int count) const
 
 void SeatingGrid::displayGrid() const
 {
-    const int cellWidth = 4;
-
     cout << "\n";
     cout << "  +-";
     for (int c = 0; c < cols; c++)
@@ -194,9 +187,8 @@ void SeatingGrid::displayGrid() const
     }
     cout << "-+" << endl;
 
-    // Center the SCREEN label
-    int totalWidth = cols * cellWidth + 2;
-    int labelLen = 8; // "  SCREEN"
+    int totalWidth = cols * 4;
+    int labelLen = 6;
     int padding = (totalWidth - labelLen) / 2;
     cout << "  | ";
     for (int i = 0; i < padding; i++) cout << " ";
@@ -213,7 +205,6 @@ void SeatingGrid::displayGrid() const
 
     cout << "\n";
 
-    // Column numbers
     cout << "     ";
     for (int c = 0; c < cols; c++)
     {
@@ -221,7 +212,6 @@ void SeatingGrid::displayGrid() const
     }
     cout << "\n\n";
 
-    // Rows
     for (int r = 0; r < rows; r++)
     {
         cout << "  " << (char)('A' + r) << "  ";
@@ -253,8 +243,8 @@ void SeatingGrid::displayGrid() const
     cout << "-+" << endl;
 
     cout << "  Available: " << getAvailableCount()
-         << "   Selected: " << getSelectedCount()
-         << "   Booked: "   << getBookedCount()
+         << "   Selected: "  << getSelectedCount()
+         << "   Booked: "    << getBookedCount()
          << endl;
 
     cout << "  +-";
