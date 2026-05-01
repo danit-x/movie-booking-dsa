@@ -1,5 +1,4 @@
 #include <cstddef>
-
 #include "../include/HashTableIntToIndex.h"
 
 HashTableIntToIndex::HashTableIntToIndex()
