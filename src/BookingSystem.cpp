@@ -5,7 +5,7 @@
 using namespace std;
 
 #include "BookingSystem.h"
-#include "../data/SampleData.h"
+#include "../include/SampleData.h"
 
 BookingSystem::BookingSystem()
 {
