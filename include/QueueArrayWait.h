@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace std;
 
-#include "../models/WaitRequest.h"
+#include "../include/WaitRequest.h"
 
 class QueueArrayWait
 {
