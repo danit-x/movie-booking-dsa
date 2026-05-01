@@ -1,12 +1,9 @@
 #include <cstddef>
-
 #include "../include/HashTableIntToIndex.h"
 
 HashTableIntToIndex::HashTableIntToIndex()
+    : buckets(NULL), bucketCount(0), size(0)
 {
-    buckets = NULL;
-    bucketCount = 0;
-    size = 0;
 }
 
 HashTableIntToIndex::~HashTableIntToIndex()
@@ -18,22 +15,22 @@ void HashTableIntToIndex::init(int bucketCountValue)
 {
     clear();
 
-    bucketCount = bucketCountValue;
-    if (bucketCount > 0)
+    if (bucketCountValue <= 0)
     {
-        buckets = new Node *[bucketCount];
-        for (int i = 0; i < bucketCount; i++)
-        {
-            buckets[i] = NULL;
-        }
+        return;
     }
 
-    size = 0;
+    bucketCount = bucketCountValue;
+    buckets = new Node *[bucketCount];
+    for (int i = 0; i < bucketCount; i++)
+    {
+        buckets[i] = NULL;
+    }
 }
 
 void HashTableIntToIndex::put(int key, int index)
 {
-    if (buckets == NULL || bucketCount == 0)
+    if (buckets == NULL)
     {
         return;
     }
@@ -59,11 +56,11 @@ void HashTableIntToIndex::put(int key, int index)
     size++;
 }
 
-int HashTableIntToIndex::get(int key, int &outIndex) const
+bool HashTableIntToIndex::get(int key, int &outIndex) const
 {
-    if (buckets == NULL || bucketCount == 0)
+    if (buckets == NULL)
     {
-        return 0;
+        return false;
     }
 
     int bucketIndex = hash(key);
@@ -74,19 +71,19 @@ int HashTableIntToIndex::get(int key, int &outIndex) const
         if (current->key == key)
         {
             outIndex = current->index;
-            return 1;
+            return true;
         }
         current = current->next;
     }
 
-    return 0;
+    return false;
 }
 
-int HashTableIntToIndex::remove(int key)
+bool HashTableIntToIndex::remove(int key)
 {
-    if (buckets == NULL || bucketCount == 0)
+    if (buckets == NULL)
     {
-        return 0;
+        return false;
     }
 
     int bucketIndex = hash(key);
@@ -108,35 +105,31 @@ int HashTableIntToIndex::remove(int key)
 
             delete current;
             size--;
-            return 1;
+            return true;
         }
 
         previous = current;
         current = current->next;
     }
 
-    return 0;
+    return false;
 }
 
 void HashTableIntToIndex::clear()
 {
     if (buckets == NULL)
     {
-        bucketCount = 0;
-        size = 0;
         return;
     }
 
     for (int i = 0; i < bucketCount; i++)
     {
         Node *current = buckets[i];
-        Node *nextNode;
-
         while (current != NULL)
         {
-            nextNode = current->next;
+            Node *next = current->next;
             delete current;
-            current = nextNode;
+            current = next;
         }
     }
 
@@ -151,11 +144,13 @@ int HashTableIntToIndex::getSize() const
     return size;
 }
 
+bool HashTableIntToIndex::isEmpty() const
+{
+    return size == 0;
+}
+
 int HashTableIntToIndex::hash(int key) const
 {
-    if (key < 0)
-    {
-        key = -key;
-    }
-    return key % bucketCount;
+    // Cast to unsigned to handle negatives and avoid INT_MIN overflow UB
+    return static_cast<unsigned int>(key) % static_cast<unsigned int>(bucketCount);
 }
