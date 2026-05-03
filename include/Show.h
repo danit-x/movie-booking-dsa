@@ -2,8 +2,9 @@
 #define SHOW_H
 
 #include <string>
-#define ROWS 10
-#define COLS 10
+#include "Constants.h"
+#include "SinglyLinkedListInt.h"
+#include "QueueArrayWait.h"
 
 struct Show
 {
@@ -14,6 +15,9 @@ struct Show
     unsigned char seats[ROWS][COLS];
     int availableCount;
     int waitCount;
+    SinglyLinkedListInt::Node *bookingIdListHead;
+    QueueArrayWait *waitFront;
+    QueueArrayWait *waitRear;
 };
 
 #endif
