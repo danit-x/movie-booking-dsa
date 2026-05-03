@@ -1,8 +1,8 @@
 #include <iostream>
 using namespace std;
 
-#include "BookingSystem.h"
-#include "Menu.h"
+#include "../include/BookingSystem.h"
+#include "../include/Menu.h"
 
 int main()
 {
