@@ -12,12 +12,9 @@ struct Show
     int movieId;
     std::string datetime;
     int price;
-    unsigned char seats[ROWS][COLS];
-    int availableCount;
     int waitCount;
     SinglyLinkedListInt::Node *bookingIdListHead;
-    QueueArrayWait *waitFront;
-    QueueArrayWait *waitRear;
+    QueueArrayWait *waitQueue;
 };
 
 #endif

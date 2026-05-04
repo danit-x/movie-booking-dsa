@@ -23,7 +23,6 @@ struct Store
 void initStore(Store &store);
 int addMovie(Store &store, const std::string &title, int durationMin);
 int addShow(Store &store, int movieId, const std::string &datetime, int price);
-void initShowSeats(Show &show);
 
 int findMovieIndexById(const Store &store, int movieId);
 
