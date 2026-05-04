@@ -2,9 +2,9 @@
 #define STORE_H
 
 #include <string>
-#include "../include/Show.h"
-#include "../include/Movie.h"
-#include "../include/Booking.h"
+#include "Movie.h"
+#include "Show.h"
+#include "Booking.h"
 
 struct Store
 {
