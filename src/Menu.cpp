@@ -1,214 +1,1212 @@
-#include <iostream>
-#include <string>
-#include <cctype>
-using namespace std;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineBook — Unlimited Movies, Anytime.</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
 
-#include "Menu.h"
-#include "ConsoleIO.h"
-#include "Constants.h"
-
-namespace
-{
-    int readShowOptionIndex(int showCount)
-    {
-        while (1)
-        {
-            std::string input = ConsoleIO::readLine("Enter show option (a-" + std::string(1, static_cast<char>('a' + showCount - 1)) + "): ");
-            if (input.size() != 1)
-            {
-                cout << "Error: Please enter a single letter option." << endl;
-                continue;
-            }
-
-            char choice = static_cast<char>(std::tolower(static_cast<unsigned char>(input[0])));
-            int index = choice - 'a';
-            if (index >= 0 && index < showCount)
-            {
-                return index;
-            }
-
-            cout << "Error: Invalid show option. Please choose from a-" 
-                 << static_cast<char>('a' + showCount - 1) << "." << endl;
-        }
+    /* ════════════════════════════════════════
+       HERO SECTION — full-bleed Netflix style
+    ════════════════════════════════════════ */
+    .hero-fullbleed {
+      position: relative;
+      min-height: 100vh; margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      text-align: center;
+      padding: 0;
     }
-}
 
-void Menu::run(BookingSystem &system)
-{
-    int mainChoice;
-    int movieId;
-    int movieIds[MAX_MOVIES];
-    int movieIdCount;
-    int movieShowIds[MAX_SHOWS];
-    int showCount;
-    int showId;
-    int showChoice;
-    int bookingId;
-    int row;
-    int col;
-    int seatsNeeded;
-    int answer;
-    std::string title;
-    std::string name;
-
-    while (1)
-    {
-        ConsoleIO::clearScreen();
-        cout << endl;
-        ConsoleIO::printDivider();
-        cout << "        MOVIE TICKET BOOKING" << endl;
-        ConsoleIO::printDivider();
-        cout << "1) Book Tickets" << endl;
-        cout << "2) Search Movie" << endl;
-        cout << "3) View My Booking" << endl;
-        cout << "4) Cancel booking" << endl;
-        cout << "5) Exit" << endl;
-
-        mainChoice = ConsoleIO::readInt("Enter choice: ", 1, 5);
-        ConsoleIO::printDivider();
-
-        if (mainChoice == 1)
-        {
-            movieIdCount = system.getMovieIds(movieIds);
-            system.listMovies();
-            movieId = ConsoleIO::readIntFromList("Enter movie ID: ", movieIds, movieIdCount);
-
-            showCount = system.listShowsForMovieSorted(movieId, movieShowIds);
-            if (showCount == 0)
-            {
-                continue;
-            }
-            cout << "Show options:" << endl;
-            for (int i = 0; i < showCount; i++)
-            {
-                cout << static_cast<char>('a' + i) << ") Show ID " << movieShowIds[i] << endl;
-            }
-            showId = movieShowIds[readShowOptionIndex(showCount)];
-
-            while (1)
-            {
-                ConsoleIO::clearScreen();
-                ConsoleIO::printDivider();
-                system.printSeatMap(showId);
-                cout << "1) Book Single Seat" << endl;
-                cout << "2) Book Group Seats" << endl;
-                cout << "3) Join Waitlist" << endl;
-                cout << "4) Back" << endl;
-
-                showChoice = ConsoleIO::readInt("Enter choice: ", 1, 4);
-                ConsoleIO::printDivider();
-
-                if (showChoice == 1)
-                {
-                    name = ConsoleIO::readName("Enter customer name: ");
-                    row = ConsoleIO::readInt("Enter row (1-" + std::to_string(ROWS) + "): ", 1, ROWS,
-                                             "enter a row number between 1 and " + std::to_string(ROWS));
-                    col = ConsoleIO::readInt("Enter column (1-" + std::to_string(COLS) + "): ", 1, COLS,
-                                             "enter a column number between 1 and " + std::to_string(COLS));
-                    if (system.bookSingle(showId, name, row, col))
-                    {
-                        cout << endl;
-                        ConsoleIO::pause();
-                    }
-                }
-                else if (showChoice == 2)
-                {
-                    Seat recommended[MAX_SEATS_IN_BOOKING];
-
-                    name = ConsoleIO::readName("Enter customer name: ");
-                    seatsNeeded = ConsoleIO::readInt("Enter number of seats (2-" + std::to_string(MAX_SEATS_IN_BOOKING) + "): ",
-                                                     2, MAX_SEATS_IN_BOOKING,
-                                                     "enter a group size between 2 and " + std::to_string(MAX_SEATS_IN_BOOKING));
-
-                    if (system.recommendSeats(showId, seatsNeeded, recommended))
-                    {
-                        cout << "Suggested seats: ";
-                        for (int i = 0; i < seatsNeeded; i++)
-                        {
-                            cout << "(" << (int)recommended[i].r + 1 << "," << (int)recommended[i].c + 1 << ")";
-                            if (i < seatsNeeded - 1)
-                            {
-                                cout << ", ";
-                            }
-                        }
-                        cout << endl;
-                        answer = ConsoleIO::readInt("Confirm booking? 1 Yes / 2 No: ", 1, 2);
-                        if (answer == 1)
-                        {
-                            if (system.bookGroupSeats(showId, name, recommended, seatsNeeded))
-                            {
-                                cout << endl;
-                                ConsoleIO::pause();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        int avail = system.getAvailableCount(showId);
-                        cout << "Only " << avail << " seats available (you requested " << seatsNeeded << ")." << endl;
-                        answer = ConsoleIO::readInt("Join waitlist? 1 Yes / 2 No: ", 1, 2);
-                        if (answer == 1)
-                        {
-                            if (system.joinWaitlist(showId, name, seatsNeeded))
-                            {
-                                cout << endl;
-                                ConsoleIO::pause();
-                            }
-                        }
-                    }
-                }
-                else if (showChoice == 3)
-                {
-                    name = ConsoleIO::readName("Enter customer name: ");
-                    seatsNeeded = ConsoleIO::readInt("Enter number of seats for waitlist (1-" + std::to_string(MAX_SEATS_IN_BOOKING) + "): ",
-                                                     1, MAX_SEATS_IN_BOOKING,
-                                                     "enter a seat count between 1 and " + std::to_string(MAX_SEATS_IN_BOOKING));
-                    if (system.joinWaitlist(showId, name, seatsNeeded))
-                    {
-                        cout << endl;
-                        ConsoleIO::pause();
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-        else if (mainChoice == 2)
-        {
-            title = ConsoleIO::readLine("Enter exact movie title: ");
-            if (system.searchMovie(title) == -1)
-            {
-                cout << "\nAvailable Movies:" << endl;
-                system.listMovies();
-            }
-            cout << endl;
-            ConsoleIO::pause();
-        }
-        else if (mainChoice == 3)
-        {
-            bookingId = ConsoleIO::readInt("Enter booking ID: ", 0, 1000000,
-                                           "enter the booking ID shown on your confirmation");
-            system.viewBooking(bookingId);
-            cout << endl;
-            ConsoleIO::pause();
-        }
-        else if (mainChoice == 4)
-        {
-            bookingId = ConsoleIO::readInt("Enter booking ID: ", 0, 1000000,
-                                           "enter the booking ID shown on your confirmation");
-            name = ConsoleIO::readName("Enter customer name: ");
-            if (system.cancelBooking(bookingId, name))
-            {
-                cout << endl;
-                ConsoleIO::pause();
-            }
-        }
-        else if (mainChoice == 5)
-        {
-            cout << "Exiting system." << endl;
-            break;
-        }
+    /* Poster collage background */
+    .hero-poster-bg {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 4px;
+      transform: scale(1.04);
+      z-index: 0;
+      pointer-events: none;
     }
-}
+
+    .hero-poster-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.55;
+      filter: saturate(1.1);
+    }
+
+    /* Gradient overlays on top of collage */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(ellipse 75% 55% at 50% 40%, rgba(8,8,8,0.55) 0%, transparent 70%),
+        linear-gradient(to bottom,
+          rgba(8,8,8,0.55) 0%,
+          rgba(8,8,8,0.20) 20%,
+          rgba(8,8,8,0.20) 65%,
+          rgba(8,8,8,0.95) 88%,
+          rgba(8,8,8,1.00) 100%
+        ),
+        linear-gradient(to right, rgba(8,8,8,0.6) 0%, transparent 15%, transparent 85%, rgba(8,8,8,0.6) 100%);
+    }
+
+    /* Hero content */
+    .hero-body {
+      position: relative;
+      z-index: 2;
+      max-width: 640px;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 44ch;
+      margin: 0;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .hero-cta-row input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      height: 48px;
+      padding: 0 1.1rem;
+      background: rgba(20,20,20,0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-get-started {
+      height: 48px;
+      padding: 0 1.5rem;
+      background: var(--red);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-get-started:hover {
+      background: var(--red-bright);
+      transform: translateY(-1px);
+      color: #fff;
+    }
+
+    .hero-fine {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ════════════════════════════════════════
+       SECTION WRAPPER (below hero)
+    ════════════════════════════════════════ */
+    .content-sections {
+      background: var(--bg-deep);
+      position: relative;
+      z-index: 5;
+    }
+
+    .section-block {
+      padding: 3.5rem 0;
+      border-bottom: 8px solid var(--bg-surface);
+    }
+
+    .section-label {
+      font-size: 1.55rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    /* ════════════════════════════════════════
+       TRENDING — horizontal numbered scroll
+    ════════════════════════════════════════ */
+    .trending-scroll {
+      display: flex;
+      gap: 0.75rem;
+      overflow-x: auto;
+      padding: 1rem 0 1.25rem;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .trending-scroll::-webkit-scrollbar { display: none; }
+
+    .trending-item {
+      position: relative;
+      flex: 0 0 auto;
+      width: 140px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .trending-item:hover { transform: scale(1.04); }
+
+    .trending-rank {
+      position: absolute;
+      left: -18px;
+      bottom: 8px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 5.5rem;
+      line-height: 1;
+      color: var(--bg-deep);
+      -webkit-text-stroke: 3px rgba(255,255,255,0.55);
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .trending-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    /* ════════════════════════════════════════
+       NOW SHOWING — grid (all movies)
+    ════════════════════════════════════════ */
+    .movies-section { padding: 3rem 0; border-bottom: 8px solid var(--bg-surface); }
+
+    /* reuse .card-grid from style.css */
+
+    /* movie card adjustments */
+    .movie-card-trigger {
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      color: inherit;
+      display: block;
+    }
+
+    .poster-container {
+      aspect-ratio: 2/3;
+      border-radius: var(--radius-md);
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .poster-container::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      pointer-events: none;
+    }
+
+    .movie-poster {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s var(--transition);
+    }
+
+    .movie-card:hover .movie-poster { transform: scale(1.06); }
+
+    .poster-placeholder {
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(-45deg, var(--bg-raised), var(--bg-raised) 10px, var(--bg-hover) 10px, var(--bg-hover) 20px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--text-muted);
+    }
+
+    .poster-skeleton {
+      aspect-ratio: 2/3;
+      border-radius: var(--radius-md);
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+    }
+
+    .line-skeleton {
+      height: 11px;
+      border-radius: 999px;
+      background: var(--bg-raised);
+      margin: 0.75rem 0 0;
+    }
+
+    .line-skeleton.short { width: 55%; margin-bottom: 0.5rem; }
+
+    .skeleton-card { position: relative; overflow: hidden; }
+
+    .skeleton-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      transform: translateX(-120%);
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.05), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer { to { transform: translateX(120%); } }
+
+    .movie-card-body {
+      padding: 0.75rem 0.25rem 0.25rem;
+      display: grid; gap: 0.2rem;
+    }
+
+    .movie-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      line-height: 1.25;
+    }
+
+    .movie-meta { font-size: 0.78rem; color: var(--text-muted); }
+
+    .movie-card-selected .poster-container {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-gold);
+    }
+
+    /* ════════════════════════════════════════
+       SHOWTIMES PANEL
+    ════════════════════════════════════════ */
+    .showtime-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: border-color 0.2s var(--transition);
+    }
+
+    .showtime-row:hover { border-color: var(--border-hover); }
+    .showtime-left { display: grid; gap: 0.2rem; }
+
+    .showtime-datetime {
+      font-weight: 600; color: var(--text-primary); font-size: 0.9rem;
+    }
+
+    .showtime-meta { font-size: 0.82rem; }
+
+    .showtime-right {
+      display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; justify-content: flex-end;
+    }
+
+    .showtime-price {
+      font-family: var(--font-mono); font-weight: 600; color: var(--gold); font-size: 0.9rem; white-space: nowrap;
+    }
+
+    .select-seats-btn {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: #0a0a0a; font-weight: 700; padding: 0.5rem 1rem;
+      border-radius: var(--radius-md); font-size: 0.82rem; border: none;
+      text-decoration: none; display: inline-flex; align-items: center;
+      transition: all 0.2s var(--transition); letter-spacing: 0.02em; white-space: nowrap;
+    }
+
+    .select-seats-btn:hover {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #0a0a0a; box-shadow: 0 0 16px var(--gold-glow); transform: translateY(-1px);
+    }
+
+    #result-summary {
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); margin: 0;
+    }
+
+    /* ════════════════════════════════════════
+       REASONS CARDS
+    ════════════════════════════════════════ */
+    .reasons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .reason-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1.25rem 1rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .reason-card:hover {
+      border-color: var(--border-gold);
+      transform: translateY(-3px);
+    }
+
+    .reason-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .reason-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .reason-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .reason-card-glow {
+      position: absolute;
+      bottom: -20px; right: -20px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--gold-glow);
+      filter: blur(25px);
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════════════════
+       FAQ ACCORDION
+    ════════════════════════════════════════ */
+    .faq-list {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .faq-item:hover { border-color: var(--border-gold); }
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 1.1rem 1.25rem;
+      text-align: left;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      transition: color 0.2s;
+    }
+
+    .faq-question:hover { color: var(--gold); }
+
+    .faq-plus {
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      transition: transform 0.3s, color 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .faq-item.open .faq-plus {
+      transform: rotate(45deg);
+      color: var(--gold);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
+      padding: 0 1.25rem;
+    }
+
+    .faq-item.open .faq-answer {
+      max-height: 300px;
+      padding: 0 1.25rem 1.1rem;
+    }
+
+    .faq-answer p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    /* ════════════════════════════════════════
+       BOTTOM CTA STRIP
+    ════════════════════════════════════════ */
+    .bottom-cta {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      border-bottom: 8px solid var(--bg-surface);
+    }
+
+    .bottom-cta p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .bottom-cta-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .bottom-cta-row input[type="text"] {
+      flex: 1; min-width: 200px; height: 48px;
+      background: rgba(20,20,20,0.9);
+    }
+
+    /* ════════════════════════════════════════
+       FOOTER LINKS
+    ════════════════════════════════════════ */
+    .footer-full {
+      padding: 3rem 0 2rem;
+      background: var(--bg-deep);
+    }
+
+    .footer-contact {
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer-contact a { color: var(--text-muted); text-decoration: underline; }
+
+    .footer-links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.5rem 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links-grid a {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+
+    .footer-links-grid a:hover { color: var(--text-secondary); }
+
+    .footer-copy {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ════════════════════════════════════════
+       HEADER overrides for this page
+    ════════════════════════════════════════ */
+    /* Override sticky from style.css — float transparently over hero */
+    .page-header.page-header-transparent {
+      background: linear-gradient(to bottom, rgba(8,8,8,0.88) 0%, transparent 100%) !important;
+      border-bottom: none !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 20 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* Push body top to 0 so hero starts right at the very top */
+    body {
+      padding-top: 0 !important;
+    }
+
+    /* Ensure grain overlay (body::before from style.css) doesn't block poster images */
+    body::before {
+      z-index: 2 !important;
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════════════════
+       SEARCH ROW (inside section)
+    ════════════════════════════════════════ */
+    .inline-search-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      max-width: 480px;
+    }
+
+    .inline-search-row input { flex: 1; }
+
+    .summary-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;
+    }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .hero-headline { font-size: 2rem; }
+      .hero-sub { font-size: 0.9rem; }
+      .trending-rank { font-size: 4rem; }
+      .trending-item { width: 110px; }
+      .reasons-grid { grid-template-columns: 1fr 1fr; }
+      .hero-poster-bg { grid-template-columns: repeat(4,1fr); }
+      .showtime-right { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ HEADER (transparent over hero) ═══ -->
+  <header class="page-header page-header-transparent" role="banner">
+    <div class="container">
+      <div class="header-row">
+        <div class="brand" aria-label="CineBook">
+          <strong>🎬 CineBook</strong>
+        </div>
+        <nav class="top-nav" aria-label="Primary navigation">
+          <a href="index.html" class="active" aria-current="page">Now Showing</a>
+          <a href="booking.html">My Booking</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero-fullbleed" aria-label="Welcome to CineBook">
+
+    <!-- Poster collage background -->
+    <div class="hero-poster-bg" aria-hidden="true">
+      <img src="images/avatar.png"        alt="">
+      <img src="images/coco.png"          alt="">
+      <img src="images/dune.png"          alt="">
+      <img src="images/frozen.png"        alt="">
+      <img src="images/gladiator.png"     alt="">
+      <img src="images/inception.png"     alt="">
+      <img src="images/interstellar.png"  alt="">
+      <img src="images/joker.png"         alt="">
+      <img src="images/jurassic_world.png" alt="">
+      <img src="images/michael.png"       alt="">
+      <img src="images/dark_knight.png"   alt="">
+      <img src="images/titanic.png"       alt="">
+      <img src="images/avatar.png"        alt="">
+      <img src="images/dune.png"          alt="">
+      <img src="images/inception.png"     alt="">
+      <img src="images/gladiator.png"     alt="">
+      <img src="images/frozen.png"        alt="">
+      <img src="images/joker.png"         alt="">
+      <img src="images/coco.png"          alt="">
+      <img src="images/interstellar.png"  alt="">
+      <img src="images/michael.png"       alt="">
+      <img src="images/titanic.png"        alt="">
+      <img src="images/dark_knight.png"   alt="">
+      <img src="images/joker.png"         alt="">
+      <img src="images/inception.png"     alt="">
+      <img src="images/avatar.png"        alt="">
+      <img src="images/dune.png"          alt="">
+    </div>
+
+    <div class="hero-overlay" aria-hidden="true"></div>
+
+    <div class="hero-body">
+      <div class="hero-eyebrow">Now Playing</div>
+      <h1 class="hero-headline">Unlimited movies,<br>at your theater.</h1>
+      <p class="hero-sub">Book seats in seconds. Search a film, pick your showtime, choose your seat — done.</p>
+      <div class="hero-cta-row">
+        <input
+          id="hero-search"
+          type="text"
+          placeholder='Try "Interstellar", "Dune", "Joker"…'
+          autocomplete="off"
+          aria-label="Search movies"
+        >
+        <a class="btn-get-started" href="#movies">Browse Movies →</a>
+      </div>
+      <p class="hero-fine">No subscription needed. Cancel anytime.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ALL CONTENT BELOW HERO ═══ -->
+  <div class="content-sections">
+
+    <!-- TRENDING NOW -->
+    <section class="section-block" aria-label="Trending Now">
+      <div class="container">
+        <div class="section-label">Trending Now</div>
+        <div class="trending-scroll" id="trending-scroll" role="list">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- NOW SHOWING (full grid + search) -->
+    <section id="movies" class="movies-section" aria-label="Now Showing">
+      <div class="container">
+        <div class="section-heading" style="flex-direction:column;align-items:flex-start;gap:0.75rem">
+          <div class="section-label">Now Showing</div>
+
+          <!-- Inline search -->
+          <div class="inline-search-row" role="search">
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Search by movie title..."
+              autocomplete="off"
+              aria-label="Search movies"
+            >
+            <button id="clear-search" type="button" class="button-secondary" aria-label="Clear search">Clear</button>
+            <span id="loading-indicator" class="loading hidden" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="summary-bar">
+          <p id="result-summary" class="status-text">Loading movies...</p>
+        </div>
+
+        <div id="page-feedback" class="hidden" role="alert" style="margin-bottom:1rem"></div>
+
+        <div id="movies-grid" class="card-grid" aria-live="polite">
+          <!-- Skeletons -->
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+          <article class="card skeleton-card" aria-hidden="true"><div class="poster-skeleton"></div><div class="line-skeleton"></div><div class="line-skeleton short"></div></article>
+        </div>
+
+        <!-- Showtimes panel -->
+        <section id="showtimes-panel" class="panel hidden" style="margin-top:1.5rem" aria-label="Showtimes">
+          <div class="section-heading">
+            <div>
+              <h2 id="showtimes-title">Showtimes</h2>
+              <p id="showtimes-subtitle" class="subtle">Select a showtime to choose your seats.</p>
+            </div>
+          </div>
+          <div id="showtimes-content" class="stack-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- MORE REASONS -->
+    <section class="section-block" aria-label="More Reasons to Join">
+      <div class="container">
+        <div class="section-label">More Reasons to Book</div>
+        <div class="reasons-grid">
+          <div class="reason-card">
+            <span class="reason-icon">🎭</span>
+            <div class="reason-title">Premium Screens</div>
+            <p class="reason-desc">Dolby Atmos, IMAX, and 4K HDR screens at every venue.</p>
+            <div class="reason-card-glow"></div>
+          </div>
+          <div class="reason-card">
+            <span class="reason-icon">⚡</span>
+            <div class="reason-title">Instant Booking</div>
+            <p class="reason-desc">Pick your seats live on the grid and confirm in seconds.</p>
+            <div class="reason-card-glow"></div>
+          </div>
+          <div class="reason-card">
+            <span class="reason-icon">📱</span>
+            <div class="reason-title">Anywhere Access</div>
+            <p class="reason-desc">Book on your phone, tablet, laptop, or smart TV.</p>
+            <div class="reason-card-glow"></div>
+          </div>
+          <div class="reason-card">
+            <span class="reason-icon">🎟️</span>
+            <div class="reason-title">Family Profiles</div>
+            <p class="reason-desc">Manage bookings for the whole family from one account.</p>
+            <div class="reason-card-glow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section-block" aria-label="Frequently Asked Questions">
+      <div class="container" style="max-width:860px">
+        <div class="section-label">Frequently Asked Questions</div>
+        <div class="faq-list">
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              What is CineBook?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>CineBook is a fast, modern cinema booking system. Search any movie currently showing, view real-time seat availability, and reserve your perfect spot — all in a few clicks.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              How much does it cost?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Ticket prices vary by showtime and seating tier. Prices are shown in LKR when you open a movie's showtimes. There are no hidden booking fees.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              Where can I use CineBook?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>CineBook works on any modern browser — desktop, tablet, or phone. No app install needed. Just open and book.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              How do I cancel a booking?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Go to <strong>My Booking</strong>, enter your Ticket ID, and select Cancel. Cancellations are processed instantly and your seats are released immediately.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              What movies can I watch?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>The Now Showing grid above lists every film currently available. The catalogue updates in real-time from our server — refresh anytime to see the latest titles.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              Is CineBook good for kids?
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-answer">
+              <p>Absolutely! Family-friendly titles are clearly listed. You can book multiple seats together so the whole family sits side by side.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM CTA -->
+    <div class="bottom-cta">
+      <p>Ready to watch? Search a movie or browse all titles below.</p>
+      <div class="bottom-cta-row">
+        <input id="bottom-search" type="text" placeholder="Search movies..." aria-label="Search movies">
+        <a class="btn-get-started" href="#movies">Get Started →</a>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer-full" role="contentinfo">
+      <div class="container">
+        <p class="footer-contact">Questions? <a href="#">Contact us</a></p>
+        <div class="footer-links-grid">
+          <a href="#">FAQ</a>
+          <a href="#">Help Centre</a>
+          <a href="#">Account</a>
+          <a href="#">Media Centre</a>
+          <a href="#">Investor Relations</a>
+          <a href="#">Jobs</a>
+          <a href="#">Ways to Book</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Privacy</a>
+          <a href="#">Cookie Preferences</a>
+          <a href="#">Corporate Information</a>
+          <a href="#">Contact Us</a>
+          <a href="#">Legal Notices</a>
+          <a href="#">Only on CineBook</a>
+        </div>
+        <p class="footer-copy">🎬 CineBook &copy; 2026 — Cinema Booking System</p>
+      </div>
+    </footer>
+
+  </div><!-- /content-sections -->
+
+  <script src="js/api.js"></script>
+  <script>
+    // ── DOM refs ──
+    const moviesGrid       = document.getElementById('movies-grid');
+    const searchInput      = document.getElementById('search-input');
+    const clearSearchBtn   = document.getElementById('clear-search');
+    const pageFeedback     = document.getElementById('page-feedback');
+    const resultSummary    = document.getElementById('result-summary');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const showtimesPanel   = document.getElementById('showtimes-panel');
+    const showtimesTitle   = document.getElementById('showtimes-title');
+    const showtimesSubtitle= document.getElementById('showtimes-subtitle');
+    const showtimesContent = document.getElementById('showtimes-content');
+    const trendingScroll   = document.getElementById('trending-scroll');
+    const heroSearch       = document.getElementById('hero-search');
+    const bottomSearch     = document.getElementById('bottom-search');
+
+    let debounceTimer   = null;
+    let expandedMovieId = null;
+    let currentMovies   = [];
+    const showtimeCache = {};
+
+    function escapeHtml(v) {
+      return String(v).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+      );
+    }
+
+    function setLoading(on) {
+      loadingIndicator.classList.toggle('hidden', !on);
+    }
+
+    function showBanner(msg, type) {
+      if (!msg) { pageFeedback.className = 'hidden'; pageFeedback.textContent = ''; return; }
+      pageFeedback.className = 'banner banner-' + type;
+      pageFeedback.textContent = msg;
+    }
+
+    function availabilityClass(n) {
+      const c = Number(n);
+      if (!Number.isFinite(c)) return 'subtle';
+      return c > 5 ? 'availability-good' : 'availability-low';
+    }
+
+    // ── Poster map ──
+    const moviePosters = {
+      'joker':           'images/joker.png',
+      'titanic':         'images/titanic.png',
+      'the dark knight': 'images/dark_knight.png',
+      'dark knight':     'images/dark_knight.png',
+      'avatar':          'images/avatar.png',
+      'coco':            'images/coco.png',
+      'interstellar':    'images/interstellar.png',
+      'inception':       'images/inception.png',
+      'gladiator':       'images/gladiator.png',
+      'frozen':          'images/frozen.png',
+      'dune':            'images/dune.png',
+      'michael':         'images/michael.png',
+      'jurassic world':  'images/jurassic_world.png'
+    };
+
+    function getPosterUrl(title) {
+      const key = String(title || '').toLowerCase().trim();
+      for (const m in moviePosters) {
+        if (key.includes(m) || m.includes(key)) return moviePosters[m];
+      }
+      return null;
+    }
+
+    // ── Trending strip ──
+    function renderTrending(movies) {
+      const top5 = movies.slice(0, 5);
+      trendingScroll.innerHTML = top5.map((movie, i) => {
+        const poster = getPosterUrl(movie.title);
+        const img = poster
+          ? `<img src="${poster}" class="trending-poster" alt="${escapeHtml(movie.title)} poster" loading="lazy">`
+          : `<div class="trending-poster" style="background:var(--bg-raised);display:flex;align-items:center;justify-content:center;font-size:2rem;border-radius:var(--radius-md)">🎞️</div>`;
+        return `
+          <div class="trending-item" role="listitem" tabindex="0"
+               data-movie-id="${movie.id}"
+               aria-label="${escapeHtml(movie.title)}, rank ${i+1}"
+               onclick="scrollToAndExpand(${movie.id})"
+               onkeydown="if(event.key==='Enter')scrollToAndExpand(${movie.id})">
+            <span class="trending-rank" aria-hidden="true">${i + 1}</span>
+            ${img}
+          </div>`;
+      }).join('');
+    }
+
+    function scrollToAndExpand(movieId) {
+      document.getElementById('movies').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => expandMovie(movieId), 400);
+    }
+
+    // ── Render movies grid ──
+    function renderMovies(movies) {
+      if (!movies.length) {
+        moviesGrid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <div style="font-size:2rem;margin-bottom:0.5rem">🎬</div>
+            <strong style="color:var(--text-secondary)">No movies found</strong>
+            <p style="margin-top:0.25rem;font-size:0.85rem">Try a different search term.</p>
+          </div>`;
+        showtimesPanel.classList.add('hidden');
+        return;
+      }
+
+      moviesGrid.innerHTML = movies.map(movie => {
+        const selected   = expandedMovieId === movie.id;
+        const poster     = getPosterUrl(movie.title);
+        const posterHtml = poster
+          ? `<img src="${poster}" class="movie-poster" alt="${escapeHtml(movie.title)} poster" loading="lazy">`
+          : `<div class="poster-placeholder">🎞️</div>`;
+
+        return `
+          <article class="card movie-card ${selected ? 'movie-card-selected' : ''}">
+            <button
+              type="button"
+              class="movie-card-trigger"
+              data-movie-id="${movie.id}"
+              aria-pressed="${selected}"
+              aria-label="Select ${escapeHtml(movie.title)}"
+            >
+              <div class="poster-container">${posterHtml}</div>
+              <div class="movie-card-body">
+                <div class="movie-title">${escapeHtml(movie.title)}</div>
+                <div class="movie-meta">${escapeHtml(movie.duration)} min</div>
+              </div>
+            </button>
+          </article>`;
+      }).join('');
+    }
+
+    // ── Showtimes panel ──
+    function renderShowtimesPanel(movieId, state) {
+      showtimesPanel.classList.remove('hidden');
+      const movie = currentMovies.find(m => m.id === movieId);
+      showtimesTitle.textContent    = movie ? movie.title : 'Showtimes';
+      showtimesSubtitle.textContent = 'Select a showtime to reserve your seats.';
+
+      if (state.loading) {
+        showtimesContent.innerHTML = `
+          <div class="list-card">
+            <div class="loading"><span class="spinner"></span><span>Loading showtimes…</span></div>
+          </div>`;
+        return;
+      }
+      if (state.error) {
+        showtimesContent.innerHTML = `<div class="banner banner-error">${escapeHtml(state.error)}</div>`;
+        return;
+      }
+      if (!state.shows || !state.shows.length) {
+        showtimesContent.innerHTML = `<div class="empty-state">No showtimes available for this movie.</div>`;
+        return;
+      }
+
+      showtimesContent.innerHTML = state.shows.map(show => {
+        const avail = availabilityClass(show.availableSeats);
+        return `
+          <div class="showtime-row">
+            <div class="showtime-left">
+              <div class="showtime-datetime">${escapeHtml(show.datetime)}</div>
+              <div class="showtime-meta">
+                <span class="${avail}">${escapeHtml(show.availableSeats)} seats available</span>
+              </div>
+            </div>
+            <div class="showtime-right">
+              <div class="showtime-price">LKR ${escapeHtml(show.price)}</div>
+              <a class="select-seats-btn" href="show.html?showId=${encodeURIComponent(show.id)}">
+                Select Seats →
+              </a>
+            </div>
+          </div>`;
+      }).join('');
+
+      setTimeout(() => showtimesPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+
+    // ── Expand movie ──
+    async function expandMovie(movieId) {
+      expandedMovieId = expandedMovieId === movieId ? null : movieId;
+      renderMovies(currentMovies);
+
+      if (expandedMovieId === null) {
+        showtimesPanel.classList.add('hidden');
+        return;
+      }
+
+      const cached = showtimeCache[movieId];
+      if (cached && (cached.shows.length || cached.error)) {
+        renderShowtimesPanel(movieId, cached);
+        return;
+      }
+
+      showtimeCache[movieId] = { shows: [], loading: true, error: '' };
+      renderShowtimesPanel(movieId, showtimeCache[movieId]);
+
+      try {
+        const shows = await getShows(movieId);
+        showtimeCache[movieId] = { shows, loading: false, error: '' };
+      } catch {
+        showtimeCache[movieId] = { shows: [], loading: false, error: 'Unable to load showtimes. Is the server running?' };
+      }
+
+      if (expandedMovieId === movieId) {
+        renderShowtimesPanel(movieId, showtimeCache[movieId]);
+      }
+    }
+
+    // ── Search ──
+    async function performSearch() {
+      const query = searchInput.value.trim();
+      try {
+        const movies = query ? await searchMovie(query) : await getMovies();
+        currentMovies = movies;
+
+        if (expandedMovieId && !movies.some(m => m.id === expandedMovieId)) {
+          expandedMovieId = null;
+        }
+
+        renderMovies(movies);
+        resultSummary.textContent = query
+          ? `${movies.length} result(s) for "${query}"`
+          : `${movies.length} movie(s) available`;
+        showBanner('', '');
+
+        if (expandedMovieId !== null && showtimeCache[expandedMovieId]) {
+          renderShowtimesPanel(expandedMovieId, showtimeCache[expandedMovieId]);
+        } else {
+          showtimesPanel.classList.add('hidden');
+        }
+      } catch {
+        currentMovies = [];
+        moviesGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">Unable to load movies right now.</div>`;
+        resultSummary.textContent = '';
+        showBanner(`Server at ${API_BASE_URL} is unreachable — make sure the backend is running.`, 'error');
+        showtimesPanel.classList.add('hidden');
+      }
+    }
+
+    function scheduleSearch() {
+      clearTimeout(debounceTimer);
+      setLoading(true);
+      debounceTimer = setTimeout(async () => {
+        await performSearch();
+        setLoading(false);
+      }, 280);
+    }
+
+    // ── Events ──
+    moviesGrid.addEventListener('click', e => {
+      const trigger = e.target.closest('.movie-card-trigger');
+      if (trigger) expandMovie(Number(trigger.dataset.movieId));
+    });
+
+    searchInput.addEventListener('input', scheduleSearch);
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      scheduleSearch();
+      searchInput.focus();
+    });
+
+    // Hero search → sync to main search and scroll
+    heroSearch.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        searchInput.value = heroSearch.value;
+        document.getElementById('movies').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(scheduleSearch, 400);
+      }
+    });
+
+    // Bottom search → same
+    bottomSearch.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        searchInput.value = bottomSearch.value;
+        document.getElementById('movies').scrollIntoView({ behavior: 'smooth' });
+        setTimeout(scheduleSearch, 400);
+      }
+    });
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        // close all
+        document.querySelectorAll('.faq-item.open').forEach(i => {
+          i.classList.remove('open');
+          i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+        });
+        if (!isOpen) {
+          item.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    // ── Init ──
+    (async () => {
+      setLoading(true);
+      try {
+        const movies = await getMovies();
+        currentMovies = movies;
+        renderMovies(movies);
+        renderTrending(movies);
+        resultSummary.textContent = `${movies.length} movie(s) available`;
+      } catch {
+        currentMovies = [];
+        moviesGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">Unable to load movies. Start the server first.</div>`;
+        showBanner(`Cannot reach ${API_BASE_URL}. Please start server.exe and refresh.`, 'error');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  </script>
+</body>
+</html>
